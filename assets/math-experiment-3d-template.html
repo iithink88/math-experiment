@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数学实验 3D</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --card-bg: #ffffff;
+            --title-color: #667eea;
+            --input-bg: #f0f0f0;
+            --input-border: #e0e0e0;
+            --shadow: 0 10px 30px rgba(0,0,0,0.2);
+            --formula-bg: #f8f9fa;
+            --info-box-bg: #e8f4fd;
+            --info-box-border: #667eea;
+            --button-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --button-hover: 0 4px 12px rgba(102, 126, 234, 0.4);
+            --button-text: #ffffff;
+        }
+
+        [data-theme="dark"] {
+            --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --bg-color: #0f0f1a;
+            --text-color: #e0e0e0;
+            --card-bg: #1a1a2e;
+            --title-color: #a78bfa;
+            --input-bg: #2d2d3d;
+            --input-border: #404050;
+            --shadow: 0 10px 30px rgba(0,0,0,0.5);
+            --formula-bg: #2d2d3d;
+            --info-box-bg: #2d3a4a;
+            --info-box-border: #a78bfa;
+            --button-primary: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+            --button-hover: 0 4px 12px rgba(124, 58, 237, 0.4);
+            --button-text: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            padding: 20px;
+            transition: background 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: var(--button-text);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            flex: 1;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .header button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .header button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .header button.active {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+        }
+
+        .controls {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            color: var(--text-color);
+        }
+
+        .controls h2 {
+            color: var(--title-color);
+            margin-bottom: 25px;
+            font-size: 1.5em;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .control-group .value-display {
+            float: right;
+            color: var(--title-color);
+            font-weight: bold;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--input-bg);
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--button-primary);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .control-group input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--button-primary);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .control-group input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--input-border);
+            border-radius: 8px;
+            font-size: 16px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            transition: border-color 0.3s;
+        }
+
+        .control-group input[type="number"]:focus {
+            border-color: var(--title-color);
+            outline: none;
+        }
+
+        .graph-container {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .graph-container h2 {
+            color: var(--title-color);
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        #canvas3d {
+            width: 100%;
+            height: 600px;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .formula {
+            background: var(--formula-bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            color: var(--title-color);
+            text-align: center;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        .info-box {
+            background: var(--info-box-bg);
+            border-left: 4px solid var(--info-box-border);
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+
+        .info-box h3 {
+            color: var(--title-color);
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+            color: var(--text-color);
+        }
+
+        .info-box li {
+            margin-bottom: 5px;
+        }
+
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .graph-container {
+                order: -1;
+            }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .header-controls {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .control-btn {
+            flex: 1;
+            padding: 12px;
+            background: var(--button-primary);
+            color: var(--button-text);
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--button-hover);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .control-btn.secondary {
+            background: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        .control-btn.secondary:hover {
+            background: var(--input-border);
+        }
+
+        .animation-info {
+            margin-top: 15px;
+            padding: 10px;
+            background: var(--formula-bg);
+            border-radius: 8px;
+            font-size: 0.9em;
+            color: var(--text-color);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="container">
+        <div class="header">
+            <h1>数学实验 3D</h1>
+            <div class="header-controls">
+                <button id="themeToggle" onclick="toggleTheme()">🌙 暗色模式</button>
+                <button id="pathToggle" onclick="togglePaths()">📍 显示路径</button>
+                <button id="animationToggle" onclick="toggleAnimation()">▶️ 自动旋转</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="controls">
+                <h2>参数控制</h2>
+
+                <!-- 动态生成的参数控制将插入这里 -->
+
+                <div class="info-box">
+                    <h3>观察要点</h3>
+                    <ul>
+                        <li>拖动鼠标旋转视角</li>
+                        <li>滚轮缩放图形</li>
+                        <li>调整参数观察 3D 变化</li>
+                        <li>使用路径追踪参数变化</li>
+                        <li>开启自动旋转观察全貌</li>
+                    </ul>
+                </div>
+
+                <div class="control-buttons">
+                    <button class="control-btn" onclick="resetParameters()">重置参数</button>
+                    <button class="control-btn secondary" onclick="clearPaths()">清除路径</button>
+                </div>
+
+                <div class="animation-info">
+                    <strong>交互说明：</strong>左键拖动旋转，右键拖动平移，滚轮缩放
+                </div>
+            </div>
+
+            <div class="graph-container">
+                <h2>3D 图形可视化</h2>
+                <div class="formula" id="formula">z = x² + y²</div>
+                <div id="canvas3d"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // 配置区域 - 根据实验需求修改以下内容
+        // ============================================
+
+        // 实验标题
+        const EXPERIMENT_TITLE = "3D 二次曲面探索";
+
+        // 当前公式显示
+        const FORMULA_TEMPLATE = "z = {a}x² + {b}y² + {c}";
+
+        // 参数配置
+        const PARAMETERS = [
+            {
+                name: "a",
+                label: "x 方向系数",
+                value: 1,
+                min: -5,
+                max: 5,
+                step: 0.1,
+                description: "控制 x 方向的曲率"
+            },
+            {
+                name: "b",
+                label: "y 方向系数",
+                value: 1,
+                min: -5,
+                max: 5,
+                step: 0.1,
+                description: "控制 y 方向的曲率"
+            },
+            {
+                name: "c",
+                label: "垂直偏移",
+                value: 0,
+                min: -5,
+                max: 5,
+                step: 0.1,
+                description: "控制曲面的上下平移"
+            }
+        ];
+
+        // 图形配置
+        const GRAPH_CONFIG = {
+            xMin: -5,
+            xMax: 5,
+            yMin: -5,
+            yMax: 5,
+            zMin: -10,
+            zMax: 10,
+            gridSegments: 50,
+            wireframe: false
+        };
+
+        // 函数定义 - 返回 z 值
+        function calculateZ(x, y, params) {
+            const a = params.a;
+            const b = params.b;
+            const c = params.c;
+            return a * x * x + b * y * y + c;
+        }
+
+        // ============================================
+        // 核心代码 - Three.js 3D 渲染
+        // ============================================
+
+        let scene, camera, renderer, mesh;
+        let currentParams = {};
+        let historyPaths = [];
+        let historyMeshes = []; // 跟踪当前场景中的历史路径 mesh
+        let showPaths = false;
+        let pathColorIndex = 0;
+        let isDarkMode = false;
+        let isAutoRotating = false;
+
+        // 路径颜色循环
+        const PATH_COLORS = [
+            0xff6384, // 红色
+            0x36a2eb, // 蓝色
+            0xffce56, // 黄色
+            0x4bc0c0, // 青色
+            0x9966ff, // 紫色
+            0xff9f40, // 橙色
+            0xc7c7c7, // 灰色
+            0x5366ff, // 深蓝
+            0xff63ff, // 粉色
+            0x63ff84  // 绿色
+        ];
+
+        // 初始化参数
+        function initParameters() {
+            PARAMETERS.forEach(param => {
+                currentParams[param.name] = param.value;
+            });
+        }
+
+        // 初始化 Three.js 场景
+        function initThreeJS() {
+            const container = document.getElementById('canvas3d');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            // 创建场景
+            scene = new THREE.Scene();
+
+            // 创建相机
+            camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+            camera.position.set(10, 8, 10);
+            camera.lookAt(0, 0, 0);
+
+            // 创建渲染器
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            container.appendChild(renderer.domElement);
+
+            // 添加光源
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(10, 10, 10);
+            scene.add(directionalLight);
+
+            // 添加坐标轴
+            const axesHelper = new THREE.AxesHelper(5);
+            scene.add(axesHelper);
+
+            // 添加网格
+            const gridHelper = new THREE.GridHelper(10, 10, 0x888888, 0xcccccc);
+            scene.add(gridHelper);
+
+            // 鼠标交互
+            setupMouseControls();
+
+            // 窗口大小调整
+            window.addEventListener('resize', onWindowResize);
+
+            // 开始动画循环
+            animate();
+        }
+
+        // 创建 3D 曲面
+        function createSurface(params, isHistory = false, color = null) {
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            const indices = [];
+
+            const xMin = GRAPH_CONFIG.xMin;
+            const xMax = GRAPH_CONFIG.xMax;
+            const yMin = GRAPH_CONFIG.yMin;
+            const yMax = GRAPH_CONFIG.yMax;
+            const segments = GRAPH_CONFIG.gridSegments;
+
+            const xStep = (xMax - xMin) / segments;
+            const yStep = (yMax - yMin) / segments;
+
+            // 生成顶点
+            for (let i = 0; i <= segments; i++) {
+                for (let j = 0; j <= segments; j++) {
+                    const x = xMin + i * xStep;
+                    const y = yMin + j * yStep;
+                    const z = calculateZ(x, y, params);
+                    vertices.push(x, z, y); // 注意：Three.js 中 y 是垂直方向
+                }
+            }
+
+            // 生成索引
+            for (let i = 0; i < segments; i++) {
+                for (let j = 0; j < segments; j++) {
+                    const a = i * (segments + 1) + j;
+                    const b = a + 1;
+                    const c = a + segments + 1;
+                    const d = c + 1;
+
+                    indices.push(a, b, c);
+                    indices.push(b, d, c);
+                }
+            }
+
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            geometry.setIndex(indices);
+            geometry.computeVertexNormals();
+
+            // 创建材质
+            const material = new THREE.MeshPhongMaterial({
+                color: color || (isDarkMode ? 0xa78bfa : 0x667eea),
+                side: THREE.DoubleSide,
+                wireframe: GRAPH_CONFIG.wireframe,
+                transparent: true,
+                opacity: isHistory ? 0.5 : 1.0,
+                shininess: 30
+            });
+
+            const mesh = new THREE.Mesh(geometry, material);
+            return mesh;
+        }
+
+        // 更新曲面
+        function updateSurface() {
+            // 移除旧曲面
+            if (mesh) {
+                scene.remove(mesh);
+                mesh.geometry.dispose();
+                mesh.material.dispose();
+            }
+
+            // 移除所有历史路径 mesh（防止内存泄漏）
+            historyMeshes.forEach(mesh => {
+                scene.remove(mesh);
+                mesh.geometry.dispose();
+                mesh.material.dispose();
+            });
+            historyMeshes = [];
+
+            // 添加历史路径
+            if (showPaths) {
+                historyPaths.forEach(path => {
+                    const pathMesh = createSurface(path.params, true, path.color);
+                    pathMesh.position.y = 0; // 确保正确位置
+                    scene.add(pathMesh);
+                    historyMeshes.push(pathMesh); // 跟踪添加的历史路径 mesh
+                });
+            }
+
+            // 创建新曲面
+            mesh = createSurface(currentParams);
+            scene.add(mesh);
+        }
+
+        // 保存当前路径
+        function savePath(params) {
+            historyPaths.push({
+                params: {...params},
+                color: PATH_COLORS[pathColorIndex % PATH_COLORS.length]
+            });
+            pathColorIndex++;
+        }
+
+        // 切换路径显示
+        function togglePaths() {
+            showPaths = !showPaths;
+            const btn = document.getElementById('pathToggle');
+            btn.textContent = showPaths ? '📍 隐藏路径' : '📍 显示路径';
+            btn.classList.toggle('active', showPaths);
+            updateSurface();
+        }
+
+        // 清除路径
+        function clearPaths() {
+            historyPaths = [];
+            pathColorIndex = 0;
+            updateSurface();
+        }
+
+        // 切换主题
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            const btn = document.getElementById('themeToggle');
+            btn.textContent = isDarkMode ? '☀️ 亮色模式' : '🌙 暗色模式';
+            btn.classList.toggle('active', isDarkMode);
+            updateSurface();
+        }
+
+        // 切换自动旋转
+        function toggleAnimation() {
+            isAutoRotating = !isAutoRotating;
+            const btn = document.getElementById('animationToggle');
+            btn.textContent = isAutoRotating ? '⏸️ 停止旋转' : '▶️ 自动旋转';
+            btn.classList.toggle('active', isAutoRotating);
+        }
+
+        // 格式化数值
+        function formatNumber(num) {
+            if (Number.isInteger(num)) {
+                return num.toString();
+            }
+            return parseFloat(num.toFixed(2)).toString();
+        }
+
+        // 更新公式显示
+        function updateFormula() {
+            const a = currentParams.a;
+            const b = currentParams.b;
+            const c = currentParams.c;
+
+            let formula = "z = ";
+
+            // 处理 a 项
+            if (a !== 0) {
+                if (a === 1) {
+                    formula += "x²";
+                } else if (a === -1) {
+                    formula += "-x²";
+                } else {
+                    formula += `${formatNumber(a)}x²`;
+                }
+            }
+
+            // 处理 b 项
+            if (b !== 0) {
+                if (formula === "z = ") {
+                    if (b === 1) {
+                        formula += "y²";
+                    } else if (b === -1) {
+                        formula += "-y²";
+                    } else {
+                        formula += `${formatNumber(b)}y²`;
+                    }
+                } else {
+                    if (b === 1) {
+                        formula += " + y²";
+                    } else if (b === -1) {
+                        formula += " - y²";
+                    } else if (b > 0) {
+                        formula += ` + ${formatNumber(b)}y²`;
+                    } else {
+                        formula += ` - ${formatNumber(Math.abs(b))}y²`;
+                    }
+                }
+            }
+
+            // 处理 c 项
+            if (c !== 0) {
+                if (formula === "z = ") {
+                    formula += formatNumber(c);
+                } else if (c > 0) {
+                    formula += ` + ${formatNumber(c)}`;
+                } else {
+                    formula += ` - ${formatNumber(Math.abs(c))}`;
+                }
+            }
+
+            // 处理所有系数都为0的情况
+            if (formula === "z = ") {
+                formula += "0";
+            }
+
+            document.getElementById('formula').textContent = formula;
+        }
+
+        // 鼠标控制
+        let isMouseDown = false;
+        let mouseX = 0, mouseY = 0;
+        let targetRotationX = 0, targetRotationY = 0;
+
+        function setupMouseControls() {
+            const canvas = renderer.domElement;
+
+            canvas.addEventListener('mousedown', (e) => {
+                isMouseDown = true;
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            canvas.addEventListener('mouseup', () => {
+                isMouseDown = false;
+            });
+
+            canvas.addEventListener('mouseleave', () => {
+                isMouseDown = false;
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (!isMouseDown) return;
+
+                const deltaX = e.clientX - mouseX;
+                const deltaY = e.clientY - mouseY;
+
+                targetRotationY += deltaX * 0.01;
+                targetRotationX += deltaY * 0.01;
+
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                camera.position.multiplyScalar(e.deltaY > 0 ? 1.1 : 0.9);
+            });
+        }
+
+        // 窗口大小调整
+        function onWindowResize() {
+            const container = document.getElementById('canvas3d');
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        // 动画循环
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // 自动旋转
+            if (isAutoRotating) {
+                targetRotationY += 0.01;
+            }
+
+            // 平滑旋转
+            const radius = Math.sqrt(camera.position.x ** 2 + camera.position.z ** 2);
+            camera.position.x = radius * Math.sin(targetRotationY);
+            camera.position.z = radius * Math.cos(targetRotationY);
+            camera.lookAt(0, 0, 0);
+
+            renderer.render(scene, camera);
+        }
+
+        // 生成参数控制界面
+        function createControls() {
+            const controlsContainer = document.querySelector('.controls');
+
+            // 插入参数控制
+            PARAMETERS.forEach((param, index) => {
+                const controlGroup = document.createElement('div');
+                controlGroup.className = 'control-group';
+                controlGroup.innerHTML = `
+                    <label>
+                        ${param.label}
+                        <span class="value-display" id="value-${param.name}">${param.value.toFixed(2)}</span>
+                    </label>
+                    <input
+                        type="range"
+                        id="slider-${param.name}"
+                        min="${param.min}"
+                        max="${param.max}"
+                        step="${param.step}"
+                        value="${param.value}"
+                        title="${param.description}"
+                    >
+                `;
+
+                controlsContainer.insertBefore(controlGroup, controlsContainer.querySelector('.info-box'));
+            });
+
+            // 添加事件监听器
+            PARAMETERS.forEach(param => {
+                const slider = document.getElementById(`slider-${param.name}`);
+                slider.addEventListener('input', function() {
+                    const oldParams = {...currentParams};
+                    currentParams[param.name] = parseFloat(this.value);
+                    document.getElementById(`value-${param.name}`).textContent = this.value;
+
+                    // 保存当前图形到历史路径
+                    savePath(oldParams);
+
+                    updateSurface();
+                    updateFormula();
+                });
+            });
+        }
+
+        // 重置参数
+        function resetParameters() {
+            PARAMETERS.forEach(param => {
+                currentParams[param.name] = param.value;
+                const slider = document.getElementById(`slider-${param.name}`);
+                if (slider) {
+                    slider.value = param.value;
+                    document.getElementById(`value-${param.name}`).textContent = param.value.toFixed(2);
+                }
+            });
+            targetRotationX = 0;
+            targetRotationY = 0;
+            updateSurface();
+            updateFormula();
+        }
+
+        // 初始化
+        window.onload = function() {
+            document.querySelector('.header h1').textContent = EXPERIMENT_TITLE;
+            initParameters();
+            initThreeJS();
+            createControls();
+            updateSurface();
+            updateFormula();
+        };
+    </script>
+</body>
+</html>
