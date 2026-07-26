@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>一元一次函数图像实验</title>
+    <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --bg-color: #ffffff;
+            --text-color: #333333;
+            --card-bg: #ffffff;
+            --title-color: #667eea;
+            --input-bg: #f0f0f0;
+            --input-border: #e0e0e0;
+            --shadow: 0 10px 30px rgba(0,0,0,0.2);
+            --grid-color: #e0e0e0;
+            --axis-color: #333333;
+            --formula-bg: #f8f9fa;
+            --info-box-bg: #e8f4fd;
+            --info-box-border: #667eea;
+            --button-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --button-hover: 0 4px 12px rgba(102, 126, 234, 0.4);
+            --button-text: #ffffff;
+        }
+
+        [data-theme="dark"] {
+            --bg-gradient: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --bg-color: #0f0f1a;
+            --text-color: #e0e0e0;
+            --card-bg: #1a1a2e;
+            --title-color: #a78bfa;
+            --input-bg: #2d2d3d;
+            --input-border: #404050;
+            --shadow: 0 10px 30px rgba(0,0,0,0.5);
+            --grid-color: #404050;
+            --axis-color: #e0e0e0;
+            --formula-bg: #2d2d3d;
+            --info-box-bg: #2d3a4a;
+            --info-box-border: #a78bfa;
+            --button-primary: linear-gradient(135deg, #7c3aed 0%, #8b5cf6 100%);
+            --button-hover: 0 4px 12px rgba(124, 58, 237, 0.4);
+            --button-text: #ffffff;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            padding: 20px;
+            transition: background 0.3s ease;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: var(--button-text);
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            flex: 1;
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .header button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .header button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .header button.active {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        .content {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 30px;
+        }
+
+        .controls {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            color: var(--text-color);
+        }
+
+        .controls h2 {
+            color: var(--title-color);
+            margin-bottom: 25px;
+            font-size: 1.5em;
+        }
+
+        .control-group {
+            margin-bottom: 25px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-color);
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .control-group .value-display {
+            float: right;
+            color: var(--title-color);
+            font-weight: bold;
+        }
+
+        .control-group input[type="range"] {
+            width: 100%;
+            height: 8px;
+            border-radius: 4px;
+            background: var(--input-bg);
+            outline: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--button-primary);
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .control-group input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: var(--button-primary);
+            cursor: pointer;
+            border: none;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+        }
+
+        .control-group input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid var(--input-border);
+            border-radius: 8px;
+            font-size: 16px;
+            background: var(--input-bg);
+            color: var(--text-color);
+            transition: border-color 0.3s;
+        }
+
+        .control-group input[type="number"]:focus {
+            border-color: var(--title-color);
+            outline: none;
+        }
+
+        .graph-container {
+            background: var(--card-bg);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+        }
+
+        .graph-container h2 {
+            color: var(--title-color);
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        #graph {
+            width: 100%;
+            height: 600px;
+        }
+
+        .formula {
+            background: var(--formula-bg);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            color: var(--title-color);
+            text-align: center;
+            font-weight: bold;
+            transition: background 0.3s ease;
+        }
+
+        .info-box {
+            background: var(--info-box-bg);
+            border-left: 4px solid var(--info-box-border);
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+        }
+
+        .info-box h3 {
+            color: var(--title-color);
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .info-box h3.sub {
+            margin-top: 15px;
+        }
+
+        .info-box ul {
+            margin-left: 20px;
+            color: var(--text-color);
+        }
+
+        .info-box li {
+            margin-bottom: 5px;
+        }
+
+        .info-box li b {
+            color: var(--title-color);
+        }
+
+        @media (max-width: 1024px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .graph-container {
+                order: -1;
+            }
+
+            .header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .header-controls {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .control-btn {
+            flex: 1;
+            padding: 12px;
+            background: var(--button-primary);
+            color: var(--button-text);
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--button-hover);
+        }
+
+        .control-btn:active {
+            transform: translateY(0);
+        }
+
+        .control-btn.secondary {
+            background: var(--input-bg);
+            color: var(--text-color);
+        }
+
+        .control-btn.secondary:hover {
+            background: var(--input-border);
+        }
+    </style>
+</head>
+<body data-theme="light">
+    <div class="container">
+        <div class="header">
+            <h1>一元一次函数图像实验</h1>
+            <div class="header-controls">
+                <button id="themeToggle" onclick="toggleTheme()">🌙 暗色模式</button>
+                <button id="pathToggle" onclick="togglePaths()">📍 显示路径</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="controls">
+                <h2>参数控制</h2>
+
+                <!-- 动态生成的参数控制将插入这里 -->
+
+                <div class="info-box">
+                    <h3>实时数据</h3>
+                    <ul id="readout"></ul>
+                    <h3 class="sub">观察要点</h3>
+                    <ul>
+                        <li><b>k 正负</b>决定直线走向：k&gt;0 ↗递增，k&lt;0 ↘递减</li>
+                        <li><b>|k| 大小</b>决定倾斜程度：|k| 越大越陡</li>
+                        <li><b>b</b>控制上下平移，b=0 时直线过原点（正比例函数）</li>
+                        <li>打开「显示路径」可叠放不同参数下的直线做对比</li>
+                    </ul>
+                </div>
+
+                <div class="control-buttons">
+                    <button class="control-btn" onclick="resetParameters()">重置参数</button>
+                    <button class="control-btn secondary" onclick="clearPaths()">清除路径</button>
+                </div>
+            </div>
+
+            <div class="graph-container">
+                <h2>图形可视化</h2>
+                <div class="formula" id="formula">y = x</div>
+                <div id="graph"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================
+        // 配置区域 - 一元一次函数 y = kx + b
+        // ============================================
+
+        const EXPERIMENT_TITLE = "一元一次函数图像实验";
+        const FORMULA_TEMPLATE = "y = {k}x + {b}";
+
+        // 参数配置：斜率 k 与截距 b
+        const PARAMETERS = [
+            {
+                name: "k",
+                label: "斜率 k",
+                value: 1,
+                min: -5,
+                max: 5,
+                step: 0.1,
+                description: "控制直线的倾斜程度与增减性（k>0 递增，k<0 递减）"
+            },
+            {
+                name: "b",
+                label: "y 轴截距 b",
+                value: 0,
+                min: -5,
+                max: 5,
+                step: 0.1,
+                description: "直线与 y 轴交点 (0, b) 的纵坐标，控制上下平移"
+            }
+        ];
+
+        const GRAPH_CONFIG = {
+            xMin: -10,
+            xMax: 10,
+            yMin: -10,
+            yMax: 10,
+            xTitle: "x",
+            yTitle: "y",
+            lineWidth: 3
+        };
+
+        // 函数定义 y = kx + b
+        function calculateY(x, params) {
+            return params.k * x + params.b;
+        }
+
+        // ============================================
+        // 核心代码 - 无需修改
+        // ============================================
+
+        let currentParams = {};
+        let historyPaths = [];
+        let showPaths = false;
+        let pathColorIndex = 0;
+        let isDarkMode = false;
+
+        const PATH_COLORS = [
+            'rgba(255, 99, 132, 0.6)',
+            'rgba(54, 162, 235, 0.6)',
+            'rgba(255, 206, 86, 0.6)',
+            'rgba(75, 192, 192, 0.6)',
+            'rgba(153, 102, 255, 0.6)',
+            'rgba(255, 159, 64, 0.6)',
+            'rgba(199, 199, 199, 0.6)',
+            'rgba(83, 102, 255, 0.6)',
+            'rgba(255, 99, 255, 0.6)',
+            'rgba(99, 255, 132, 0.6)'
+        ];
+
+        function initParameters() {
+            PARAMETERS.forEach(param => {
+                currentParams[param.name] = param.value;
+            });
+        }
+
+        function createControls() {
+            const controlsContainer = document.querySelector('.controls');
+            const titleElement = controlsContainer.querySelector('h2');
+
+            PARAMETERS.forEach((param, index) => {
+                const controlGroup = document.createElement('div');
+                controlGroup.className = 'control-group';
+                controlGroup.innerHTML = `
+                    <label>
+                        ${param.label}
+                        <span class="value-display" id="value-${param.name}">${param.value.toFixed(2)}</span>
+                    </label>
+                    <input
+                        type="range"
+                        id="slider-${param.name}"
+                        min="${param.min}"
+                        max="${param.max}"
+                        step="${param.step}"
+                        value="${param.value}"
+                        title="${param.description}"
+                    >
+                `;
+
+                controlsContainer.insertBefore(controlGroup, controlsContainer.querySelector('.info-box'));
+            });
+
+            PARAMETERS.forEach(param => {
+                const slider = document.getElementById(`slider-${param.name}`);
+                slider.addEventListener('input', function() {
+                    const oldParams = {...currentParams};
+                    currentParams[param.name] = parseFloat(this.value);
+                    document.getElementById(`value-${param.name}`).textContent = this.value;
+
+                    savePath(oldParams);
+
+                    updateGraph();
+                });
+            });
+        }
+
+        function savePath(params) {
+            const xValues = [];
+            const yValues = [];
+            const step = (GRAPH_CONFIG.xMax - GRAPH_CONFIG.xMin) / 500;
+
+            for (let x = GRAPH_CONFIG.xMin; x <= GRAPH_CONFIG.xMax; x += step) {
+                xValues.push(x);
+                yValues.push(calculateY(x, params));
+            }
+
+            historyPaths.push({
+                x: xValues,
+                y: yValues,
+                color: PATH_COLORS[pathColorIndex % PATH_COLORS.length],
+                params: {...params}
+            });
+
+            pathColorIndex++;
+        }
+
+        function togglePaths() {
+            showPaths = !showPaths;
+            const btn = document.getElementById('pathToggle');
+            btn.textContent = showPaths ? '📍 隐藏路径' : '📍 显示路径';
+            btn.classList.toggle('active', showPaths);
+            updateGraph();
+        }
+
+        function clearPaths() {
+            historyPaths = [];
+            pathColorIndex = 0;
+            updateGraph();
+        }
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            document.body.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+            const btn = document.getElementById('themeToggle');
+            btn.textContent = isDarkMode ? '☀️ 亮色模式' : '🌙 暗色模式';
+            btn.classList.toggle('active', isDarkMode);
+            updateGraph();
+        }
+
+        function getThemeColors() {
+            if (isDarkMode) {
+                return {
+                    gridColor: '#404050',
+                    axisColor: '#e0e0e0',
+                    lineColor: '#a78bfa',
+                    bgColor: '#1a1a2e'
+                };
+            } else {
+                return {
+                    gridColor: '#e0e0e0',
+                    axisColor: '#333333',
+                    lineColor: '#667eea',
+                    bgColor: '#ffffff'
+                };
+            }
+        }
+
+        function formatNumber(num) {
+            if (Number.isInteger(num)) {
+                return num.toString();
+            }
+            return parseFloat(num.toFixed(2)).toString();
+        }
+
+        // 更新公式显示 y = kx + b
+        function updateFormula() {
+            const k = currentParams.k;
+            const b = currentParams.b;
+
+            let formula = "y = ";
+
+            // kx 项
+            if (k !== 0) {
+                if (k === 1) {
+                    formula += "x";
+                } else if (k === -1) {
+                    formula += "-x";
+                } else {
+                    formula += formatNumber(k) + "x";
+                }
+            }
+
+            // b 项
+            if (b !== 0) {
+                if (formula === "y = ") {
+                    formula += formatNumber(b);
+                } else if (b > 0) {
+                    formula += " + " + formatNumber(b);
+                } else {
+                    formula += " - " + formatNumber(Math.abs(b));
+                }
+            }
+
+            if (formula === "y = ") {
+                formula += "0";
+            }
+
+            document.getElementById('formula').textContent = formula;
+            updateReadout(k, b);
+        }
+
+        // 实时数据读数
+        function updateReadout(k, b) {
+            const el = document.getElementById('readout');
+            if (!el) return;
+
+            const trend = k > 0 ? "递增 ↗（k&gt;0）"
+                        : (k < 0 ? "递减 ↘（k&lt;0）"
+                        : "常函数（水平直线，k=0）");
+
+            const yIntercept = `(0, ${formatNumber(b)})`;
+
+            let xIntercept;
+            if (k === 0) {
+                xIntercept = (b === 0) ? "整条 x 轴（y≡0）" : "无（与 x 轴平行）";
+            } else {
+                xIntercept = `(${formatNumber(-b / k)}, 0)`;
+            }
+
+            const origin = (b === 0) ? "是（正比例函数）" : "否";
+
+            el.innerHTML = `
+                <li><b>增减性：</b>${trend}</li>
+                <li><b>与 y 轴交点：</b>${yIntercept}</li>
+                <li><b>与 x 轴交点：</b>${xIntercept}</li>
+                <li><b>过原点：</b>${origin}</li>
+            `;
+        }
+
+        function generateCurrentGraphData() {
+            const xValues = [];
+            const yValues = [];
+
+            const step = (GRAPH_CONFIG.xMax - GRAPH_CONFIG.xMin) / 500;
+
+            for (let x = GRAPH_CONFIG.xMin; x <= GRAPH_CONFIG.xMax; x += step) {
+                xValues.push(x);
+                yValues.push(calculateY(x, currentParams));
+            }
+
+            const themeColors = getThemeColors();
+
+            return {
+                x: xValues,
+                y: yValues,
+                type: 'scatter',
+                mode: 'lines',
+                line: {
+                    color: themeColors.lineColor,
+                    width: GRAPH_CONFIG.lineWidth
+                },
+                name: '当前直线'
+            };
+        }
+
+        function updateGraph() {
+            const data = [];
+
+            if (showPaths) {
+                historyPaths.forEach((path, index) => {
+                    data.push({
+                        x: path.x,
+                        y: path.y,
+                        type: 'scatter',
+                        mode: 'lines',
+                        line: {
+                            color: path.color,
+                            width: 2
+                        },
+                        name: `路径 ${index + 1}`
+                    });
+                });
+            }
+
+            data.push(generateCurrentGraphData());
+
+            const themeColors = getThemeColors();
+
+            const layout = {
+                title: EXPERIMENT_TITLE,
+                titlefont: { color: themeColors.axisColor },
+                xaxis: {
+                    title: GRAPH_CONFIG.xTitle,
+                    range: [GRAPH_CONFIG.xMin, GRAPH_CONFIG.xMax],
+                    gridcolor: themeColors.gridColor,
+                    zerolinecolor: themeColors.axisColor,
+                    zerolinewidth: 2,
+                    titlefont: { color: themeColors.axisColor },
+                    tickfont: { color: themeColors.axisColor }
+                },
+                yaxis: {
+                    title: GRAPH_CONFIG.yTitle,
+                    range: [GRAPH_CONFIG.yMin, GRAPH_CONFIG.yMax],
+                    gridcolor: themeColors.gridColor,
+                    zerolinecolor: themeColors.axisColor,
+                    zerolinewidth: 2,
+                    titlefont: { color: themeColors.axisColor },
+                    tickfont: { color: themeColors.axisColor }
+                },
+                hovermode: 'closest',
+                margin: {
+                    l: 60,
+                    r: 30,
+                    t: 60,
+                    b: 60
+                },
+                paper_bgcolor: themeColors.bgColor,
+                plot_bgcolor: themeColors.bgColor,
+                showlegend: showPaths
+            };
+
+            const config = {
+                responsive: true,
+                displayModeBar: true,
+                modeBarButtonsToRemove: ['lasso2d', 'select2d']
+            };
+
+            Plotly.newPlot('graph', data, layout, config);
+            updateFormula();
+        }
+
+        function resetParameters() {
+            PARAMETERS.forEach(param => {
+                currentParams[param.name] = param.value;
+                const slider = document.getElementById(`slider-${param.name}`);
+                if (slider) {
+                    slider.value = param.value;
+                    document.getElementById(`value-${param.name}`).textContent = param.value.toFixed(2);
+                }
+            });
+            updateGraph();
+        }
+
+        window.onload = function() {
+            document.querySelector('.header h1').textContent = EXPERIMENT_TITLE;
+            initParameters();
+            createControls();
+            updateGraph();
+        };
+    </script>
+</body>
+</html>
