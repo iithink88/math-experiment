@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>math-experiment · 数学实验技能 Demos</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, "Segoe UI", Roboto, "Microsoft YaHei", sans-serif;
+         background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%); min-height: 100vh;
+         color: #fff; display: flex; flex-direction: column; align-items: center; padding: 48px 20px; }
+  h1 { font-size: 2.2em; margin-bottom: 8px; text-shadow: 2px 2px 4px rgba(0,0,0,.3); }
+  p.sub { opacity: .9; margin-bottom: 32px; text-align: center; max-width: 640px; line-height: 1.6; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+           gap: 20px; width: 100%; max-width: 720px; }
+  .card { background: rgba(255,255,255,.12); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.25);
+          border-radius: 14px; padding: 24px; text-decoration: none; color: #fff; transition: transform .2s, background .2s; }
+  .card:hover { transform: translateY(-4px); background: rgba(255,255,255,.2); }
+  .card h2 { font-size: 1.3em; margin-bottom: 8px; }
+  .card p { font-size: .92em; opacity: .9; line-height: 1.5; }
+  .links { margin-top: 32px; display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+  .links a { color: #cfe0ff; font-size: .9em; }
+  footer { margin-top: 40px; font-size: .8em; opacity: .7; }
+</style>
+</head>
+<body>
+  <h1>math-experiment 数学实验技能</h1>
+  <p class="sub">把数学问题变成可交互的 2D / 3D 实验。下方是两个成品例子，点击即可在线体验。</p>
+
+  <div class="cards">
+    <a class="card" href="demo/cone_projection_area.html">
+      <h2>📐 圆锥侧面积验证</h2>
+      <p>用数值积分验证圆锥侧面积公式 S = πrl，并验证投影面积公式 S·cosα = 底面 πr²。</p>
+    </a>
+    <a class="card" href="demo/%E4%B8%80%E5%85%83%E4%B8%80%E6%AC%A1%E5%87%BD%E6%95%B0%E5%9B%BE%E5%83%8F%E5%AE%9E%E9%AA%8C.html">
+      <h2>📈 一元一次函数图像</h2>
+      <p>拖动滑块探索 y = kx + b 中 k、b 对图像（斜率、截距）的影响。</p>
+    </a>
+  </div>
+
+  <div class="links">
+    <a href="SKILL.md">查看 SKILL.md</a>
+    <a href="README.md">查看 README</a>
+    <a href="https://github.com/iithink88/math-experiment">GitHub 仓库</a>
+  </div>
+
+  <footer>基于 Plotly.js / Three.js · 纯前端 · MIT License</footer>
+</body>
+</html>
